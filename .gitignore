@@ -1,0 +1,23 @@
+# Build artifacts
+/devtopo
+/devtopo.exe
+*.exe
+# Local database
+*.sqlite
+*.sqlite-journal
+# SDD executor workspace (git-ignored scratch)
+/.superpowers/
+# UI dependencies (the built ui_dist is committed for the Go embed; node_modules is not)
+/ui/node_modules/
+/ui/dist/
+/ui/.vite/
+# Claude Code agent worktrees
+/.claude/worktrees/
+
+# Working plans and specs stay local, out of the public repo.
+/docs/plans/
+/docs/superpowers/
+
+# Editor backups, and images uploaded to GitHub by hand (avatar, social preview)
+*~
+/packaging/github/

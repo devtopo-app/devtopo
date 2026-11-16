@@ -1,0 +1,60 @@
+# Tests on Windows, a real Mac and Linux, then starts the app and checks it
+# serves its pages. Runs only when started by hand: Actions tab - CI - Run workflow
+# (or: gh workflow run CI).
+name: CI
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: 1.27.x
+      - run: go vet ./...
+      - run: go test ./...
+      # The Linux release is built without cgo, for amd64 and arm64.
+      - name: Linux release builds
+        if: runner.os == 'Linux'
+        env:
+          CGO_ENABLED: '0'
+        run: |
+          GOARCH=amd64 go build -trimpath -o /dev/null ./cmd/devtopo
+          GOARCH=arm64 go vet ./...
+          GOARCH=arm64 go build -trimpath -o /dev/null ./cmd/devtopo
+
+      - name: UI tests
+        if: runner.os == 'macOS'
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20
+      - if: runner.os == 'macOS'
+        working-directory: ui
+        run: |
+          npm ci
+          npx vitest run
+          npx tsc --noEmit -p .
+
+      - name: The app starts and serves its pages
+        shell: bash
+        run: |
+          go build -o devtopo-smoke ./cmd/devtopo
+          mkdir -p "$RUNNER_TEMP/claude"
+          ./devtopo-smoke app --db "$RUNNER_TEMP/smoke.sqlite" --claude-dir "$RUNNER_TEMP/claude" --no-narrative &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8787/api/ping && break; sleep 1; done
+          curl -sf http://127.0.0.1:8787/api/ping | grep -qx devtopo
+          curl -sf http://127.0.0.1:8787/api/today > /dev/null
+          curl -sf http://127.0.0.1:8787/api/help | head -1 | grep -q '# DevTopo'
+          curl -sf http://127.0.0.1:8787/ | grep -q 'id="root"'
+          ./devtopo-smoke app --db "$RUNNER_TEMP/smoke.sqlite" --claude-dir "$RUNNER_TEMP/claude" --no-narrative | grep -q 'already running'
+          kill %1
