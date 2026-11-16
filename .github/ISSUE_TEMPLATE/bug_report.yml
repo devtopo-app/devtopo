@@ -1,0 +1,45 @@
+name: Bug report
+description: Something in DevTopo does not work as it should
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open Settings
+        2. ...
+  - type: input
+    id: version
+    attributes:
+      label: DevTopo version
+      description: "`devtopo --version`, or Settings - About"
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options: [Windows, macOS, Linux]
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How you installed it
+      options: [Downloaded from Releases, Homebrew, Scoop, Built from source]
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: The relevant lines of `~/.devtopo/devtopo.log`. Check them for anything private first.
+      render: text

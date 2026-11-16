@@ -1,0 +1,23 @@
+# DevTopo takes no outside code (see CONTRIBUTING.md): a pull request from
+# someone outside the repository is closed with a friendly note. It checks
+# out nothing, so running on pull_request_target is safe.
+name: Close pull requests
+
+on:
+  pull_request_target:
+    types: [opened, reopened]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  close:
+    if: github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh pr close "$PR" --repo "$REPO" --comment "Thanks for taking the time! DevTopo does not accept pull requests (see CONTRIBUTING.md), so this one is closed. Please open an issue describing the change instead; a snippet there is welcome and it may well make it in."

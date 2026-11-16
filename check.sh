@@ -1,0 +1,13 @@
+#!/bin/sh
+# check.sh vets and tests the Go code, and vets and builds it for macOS and
+# Linux too, so code for one system cannot break another's build unnoticed. Run from the repo root.
+set -e
+export CGO_ENABLED=0
+go vet ./...
+go test ./...
+GOOS=darwin GOARCH=arm64 go vet ./...
+GOOS=darwin GOARCH=amd64 go build -o /dev/null ./cmd/devtopo
+GOOS=linux GOARCH=amd64 go vet ./...
+GOOS=linux GOARCH=amd64 go build -o /dev/null ./cmd/devtopo
+GOOS=linux GOARCH=arm64 go build -o /dev/null ./cmd/devtopo
+echo ok
